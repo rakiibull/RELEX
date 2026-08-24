@@ -5,6 +5,15 @@ export interface ReminderShowPayload {
   /** Which exercise to show. Main picks the id; the renderer resolves it to
    *  an SVG component, so no React reaches the main bundle. */
   exerciseId: string
+  soundEnabled: boolean
+  /** 0 to 1. */
+  volume: number
+  /** file:// URL, resolved by main so packaging differences stay in one place. */
+  chimeUrl: string
+  doneUrl: string
+  /** Hidden once the cap is reached, so snoozing cannot loop forever. */
+  canSnooze: boolean
+  snoozeMinutes: number
 }
 
 /** What the popup sends back when the user acts on it. */
@@ -35,4 +44,22 @@ export interface Exercise {
   bodyArea: BodyArea
   steps: { en: string[]; bn: string[] }
   reps?: string
+}
+
+export interface WorkHours {
+  enabled: boolean
+  /** "HH:MM", 24-hour. start > end means the window runs overnight. */
+  start: string
+  end: string
+}
+
+export interface Settings {
+  intervalMinutes: number
+  breakDurationSec: number
+  soundEnabled: boolean
+  volume: number
+  snoozeMinutes: number
+  maxSnoozes: number
+  workHours: WorkHours
+  launchAtLogin: boolean
 }

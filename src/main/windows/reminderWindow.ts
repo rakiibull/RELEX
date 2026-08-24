@@ -93,3 +93,11 @@ export function sendTimerState(state: TimerState): void {
     win.webContents.send(CH.TIMER_STATE, state)
   }
 }
+
+/** Tells the popup a break finished on its own, so it can play the closing
+ *  chime and switch to the "Nice work" card. */
+export function sendBreakComplete(): void {
+  if (win && !win.isDestroyed() && win.isVisible()) {
+    win.webContents.send(CH.BREAK_COMPLETE)
+  }
+}

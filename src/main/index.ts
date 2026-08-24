@@ -1,49 +1,60 @@
 import { app, ipcMain } from 'electron'
+import { pathToFileURL } from 'url'
 import { CH } from '../shared/channels'
-import type { BreakAction, TimerState } from '../shared/types'
+import type { BreakAction, Settings, TimerState } from '../shared/types'
 import { EXERCISES, pickNextExercise } from '../shared/exercises'
+import { isWithinWorkHours } from '../shared/workHours'
 import * as scheduler from './scheduler'
 import { registerPowerEvents } from './powerEvents'
 import { createTray, updateTray, destroyTray } from './tray'
+import { soundPath } from './paths'
+import { getLaunchAtLogin, setLaunchAtLogin } from './loginItem'
+import {
+  getRecentExerciseIds,
+  getSettings,
+  setRecentExerciseIds,
+  setSettings,
+} from './store'
 import {
   createReminderWindow,
   showReminder,
   hideReminder,
   sendTimerState,
+  sendBreakComplete,
 } from './windows/reminderWindow'
+import {
+  createSettingsWindow,
+  showSettings,
+  hideSettings,
+  sendSettings,
+  markQuitting,
+} from './windows/settingsWindow'
 
 /** Waiting out a 30-minute interval to check a change is impractical, so both
  *  durations can be overridden for a dev run:
- *    RELEX_INTERVAL_SEC=10 RELEX_BREAK_SEC=15 npm run dev
- *  Phase 5 moves these into persisted settings. */
-function seconds(envVar: string, fallbackSec: number): number {
+ *    RELEX_INTERVAL_SEC=10 RELEX_BREAK_SEC=15 npm run dev */
+function devOverrideSec(envVar: string): number | null {
   const raw = Number(process.env[envVar])
-  return Number.isFinite(raw) && raw > 0 ? raw : fallbackSec
-}
-
-const CONFIG = {
-  intervalMinutes: seconds('RELEX_INTERVAL_SEC', 30 * 60) / 60,
-  breakDurationSec: seconds('RELEX_BREAK_SEC', 180),
-  snoozeMinutes: seconds('RELEX_SNOOZE_SEC', 5 * 60) / 60,
-  maxSnoozes: 3,
+  return Number.isFinite(raw) && raw > 0 ? raw : null
 }
 
 /** How long the "Nice work" card stays up after a completed break. */
 const NICE_WORK_MS = 3000
-
-/** Ids of the last few exercises shown, oldest first, so the same stretch
- *  does not come round twice in a row. Phase 5 persists this. */
-const recentExerciseIds: string[] = []
 const RECENT_LIMIT = 6
 
-function nextExerciseId(): string {
-  const exercise = pickNextExercise(EXERCISES, recentExerciseIds)
-  recentExerciseIds.push(exercise.id)
-  if (recentExerciseIds.length > RECENT_LIMIT) recentExerciseIds.shift()
-  return exercise.id
-}
-
+let settings: Settings
 let hideTimer: NodeJS.Timeout | null = null
+
+function schedulerConfig(): scheduler.SchedulerConfig {
+  const intervalSec = devOverrideSec('RELEX_INTERVAL_SEC')
+  const breakSec = devOverrideSec('RELEX_BREAK_SEC')
+  return {
+    intervalMinutes: intervalSec !== null ? intervalSec / 60 : settings.intervalMinutes,
+    breakDurationSec: breakSec ?? settings.breakDurationSec,
+    snoozeMinutes: settings.snoozeMinutes,
+    maxSnoozes: settings.maxSnoozes,
+  }
+}
 
 function clearHideTimer(): void {
   if (hideTimer) clearTimeout(hideTimer)
@@ -58,9 +69,39 @@ function hideAfter(ms: number): void {
   }, ms)
 }
 
+/** Ids of the last few exercises, oldest first, persisted so variety survives
+ *  a restart. */
+function nextExerciseId(): string {
+  const recent = getRecentExerciseIds()
+  const exercise = pickNextExercise(EXERCISES, recent)
+  setRecentExerciseIds([...recent, exercise.id].slice(-RECENT_LIMIT))
+  return exercise.id
+}
+
 function onState(state: TimerState): void {
   updateTray(state)
   sendTimerState(state)
+}
+
+function startBreak(): void {
+  // Outside work hours the scheduler keeps running but the popup is suppressed
+  // and the interval restarts — stopping it would need separate restart logic.
+  if (!isWithinWorkHours(settings.workHours, new Date())) {
+    scheduler.skipNext()
+    return
+  }
+
+  clearHideTimer()
+  showReminder({
+    breakDurationSec: schedulerConfig().breakDurationSec,
+    exerciseId: nextExerciseId(),
+    soundEnabled: settings.soundEnabled,
+    volume: settings.volume,
+    chimeUrl: pathToFileURL(soundPath('chime.wav')).toString(),
+    doneUrl: pathToFileURL(soundPath('done.wav')).toString(),
+    canSnooze: scheduler.snoozesLeft() > 0,
+    snoozeMinutes: settings.snoozeMinutes,
+  })
 }
 
 // Two copies running would mean two sets of reminders.
@@ -71,7 +112,12 @@ if (!app.requestSingleInstanceLock()) {
     // Menu-bar app: no Dock icon.
     app.dock?.hide()
 
+    settings = getSettings()
+    // The user can revoke launch-at-login in System Settings behind our back.
+    settings.launchAtLogin = getLaunchAtLogin()
+
     createReminderWindow()
+    createSettingsWindow()
 
     createTray({
       breakNow: () => scheduler.breakNow(),
@@ -79,6 +125,7 @@ if (!app.requestSingleInstanceLock()) {
       pauseFor: (minutes) => scheduler.pauseFor(minutes),
       pauseUntilTomorrow: () => scheduler.pauseUntilTomorrow(),
       resume: () => scheduler.resume(),
+      openSettings: showSettings,
       quit: () => app.quit(),
     })
 
@@ -97,21 +144,40 @@ if (!app.requestSingleInstanceLock()) {
       }
     })
 
+    ipcMain.handle(CH.SETTINGS_GET, () => settings)
+
+    ipcMain.handle(CH.SETTINGS_SET, (_e, next: Settings) => {
+      const previous = settings
+      settings = setSettings(next)
+
+      if (settings.launchAtLogin !== previous.launchAtLogin) {
+        setLaunchAtLogin(settings.launchAtLogin)
+      }
+      scheduler.updateConfig(schedulerConfig())
+      sendSettings(settings)
+      return settings
+    })
+
+    ipcMain.handle(CH.SETTINGS_TEST_SOUND, () => ({
+      url: pathToFileURL(soundPath('chime.wav')).toString(),
+      volume: settings.volume,
+    }))
+
+    ipcMain.handle(CH.WINDOW_CLOSE, () => hideSettings())
+
     registerPowerEvents()
 
-    scheduler.start(CONFIG, {
-      onBreakStart: () => {
-        clearHideTimer()
-        showReminder({
-          breakDurationSec: CONFIG.breakDurationSec,
-          exerciseId: nextExerciseId(),
-        })
-      },
+    scheduler.start(schedulerConfig(), {
+      onBreakStart: startBreak,
       onBreakEnd: (completed) => {
         // A break that ran its course leaves the "Nice work" card up briefly;
         // one the user dismissed should disappear at once.
-        if (completed) hideAfter(NICE_WORK_MS)
-        else hideReminder()
+        if (completed) {
+          sendBreakComplete()
+          hideAfter(NICE_WORK_MS)
+        } else {
+          hideReminder()
+        }
       },
       onState,
     })
@@ -123,6 +189,7 @@ if (!app.requestSingleInstanceLock()) {
   })
 
   app.on('before-quit', () => {
+    markQuitting()
     scheduler.stop()
     destroyTray()
   })

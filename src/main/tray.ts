@@ -8,6 +8,7 @@ export interface TrayActions {
   pauseFor: (minutes: number) => void
   pauseUntilTomorrow: () => void
   resume: () => void
+  openSettings: () => void
   quit: () => void
 }
 
@@ -66,6 +67,7 @@ function buildMenu(state: TimerState): void {
       },
       { label: 'Resume', enabled: paused, click: actions.resume },
       { type: 'separator' },
+      { label: 'Settings…', accelerator: 'Command+,', click: actions.openSettings },
       { label: 'Quit RELEX', accelerator: 'Command+Q', click: actions.quit },
     ]),
   )

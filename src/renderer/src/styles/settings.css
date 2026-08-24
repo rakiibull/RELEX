@@ -1,0 +1,181 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #16181d;
+  color: #f4f5f7;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+
+.loading {
+  padding: 40px;
+  color: #8b93a1;
+}
+
+.settings {
+  padding: 8px 28px 24px;
+}
+
+.settings-title {
+  /* Clears the hidden-inset traffic lights. */
+  margin: 28px 0 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b93a1;
+  -webkit-app-region: drag;
+}
+
+.group {
+  margin-bottom: 18px;
+  padding: 4px 16px;
+  border-radius: 14px;
+  background: #1c1f26;
+  border: 1px solid #262b34;
+}
+
+.group-title {
+  margin: 14px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7f8794;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid #23272f;
+}
+
+.group-title + .row {
+  border-top: none;
+}
+
+.row-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row-label {
+  font-size: 14px;
+}
+
+.row-hint {
+  font-size: 12px;
+  color: #7f8794;
+}
+
+.row-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+/* The word between the two time inputs is a separator, not a unit column. */
+.unit-inline {
+  width: auto;
+}
+
+.unit {
+  font-size: 12px;
+  color: #7f8794;
+  /* Fixed width so rows with and without a unit line their inputs up. */
+  width: 24px;
+}
+
+input[type='number'],
+input[type='time'] {
+  font: inherit;
+  font-size: 14px;
+  width: 78px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid #333945;
+  background: #14161b;
+  color: #f4f5f7;
+  text-align: right;
+}
+
+input[type='time'] {
+  /* Wide enough for the 12-hour format with its AM/PM and stepper. */
+  width: 132px;
+  text-align: left;
+}
+
+input[type='number']:focus,
+input[type='time']:focus {
+  outline: 2px solid #4c8dff;
+  outline-offset: 1px;
+}
+
+input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #4c8dff;
+  cursor: pointer;
+}
+
+input[type='range'] {
+  width: 120px;
+  accent-color: #4c8dff;
+  cursor: pointer;
+}
+
+input:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-small,
+.btn-primary-small {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #333945;
+  background: #232730;
+  color: #e6e9ee;
+  cursor: pointer;
+}
+
+.btn-small:hover:not(:disabled) {
+  background: #2b303b;
+}
+
+.btn-small:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-primary-small {
+  background: #4c8dff;
+  border-color: transparent;
+  color: #fff;
+  padding: 8px 26px;
+}
+
+.btn-primary-small:hover {
+  background: #659dff;
+}
+
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+}

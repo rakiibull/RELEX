@@ -1,24 +1,32 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { CH } from '../shared/channels'
-import type { BreakAction, ReminderShowPayload, TimerState } from '../shared/types'
+import type { BreakAction, ReminderShowPayload, Settings, TimerState } from '../shared/types'
+
+/** Every on* method returns an unsubscribe fn — React StrictMode double-invokes
+ *  effects in dev, and without cleanup you get duplicate listeners and
+ *  double-fired reminders. */
+function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
+  const handler = (_e: Electron.IpcRendererEvent, payload: T): void => cb(payload)
+  ipcRenderer.on(channel, handler)
+  return () => ipcRenderer.removeListener(channel, handler)
+}
 
 const api = {
   breakAction: (action: BreakAction): Promise<void> =>
     ipcRenderer.invoke(CH.BREAK_ACTION, action),
 
-  /** Returns an unsubscribe fn — React StrictMode double-invokes effects in dev,
-   *  and without cleanup you get duplicate listeners and double-fired reminders. */
-  onReminderShow: (cb: (p: ReminderShowPayload) => void): (() => void) => {
-    const handler = (_e: Electron.IpcRendererEvent, p: ReminderShowPayload) => cb(p)
-    ipcRenderer.on(CH.REMINDER_SHOW, handler)
-    return () => ipcRenderer.removeListener(CH.REMINDER_SHOW, handler)
-  },
+  getSettings: (): Promise<Settings> => ipcRenderer.invoke(CH.SETTINGS_GET),
+  setSettings: (s: Settings): Promise<Settings> => ipcRenderer.invoke(CH.SETTINGS_SET, s),
+  /** Returns the file URL and volume so the settings window can play it. */
+  testSound: (): Promise<{ url: string; volume: number }> =>
+    ipcRenderer.invoke(CH.SETTINGS_TEST_SOUND),
+  closeWindow: (): Promise<void> => ipcRenderer.invoke(CH.WINDOW_CLOSE),
 
-  onTimerState: (cb: (s: TimerState) => void): (() => void) => {
-    const handler = (_e: Electron.IpcRendererEvent, s: TimerState) => cb(s)
-    ipcRenderer.on(CH.TIMER_STATE, handler)
-    return () => ipcRenderer.removeListener(CH.TIMER_STATE, handler)
-  },
+  onReminderShow: (cb: (p: ReminderShowPayload) => void) =>
+    subscribe<ReminderShowPayload>(CH.REMINDER_SHOW, cb),
+  onTimerState: (cb: (s: TimerState) => void) => subscribe<TimerState>(CH.TIMER_STATE, cb),
+  onBreakComplete: (cb: () => void) => subscribe<void>(CH.BREAK_COMPLETE, cb),
+  onSettingsChanged: (cb: (s: Settings) => void) => subscribe<Settings>(CH.SETTINGS_CHANGED, cb),
 }
 
 contextBridge.exposeInMainWorld('relex', api)

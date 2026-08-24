@@ -3,6 +3,7 @@ import { findExercise } from '@shared/exercises'
 import type { Exercise } from '@shared/types'
 import { CountdownRing } from './CountdownRing'
 import { ExerciseCard } from './ExerciseCard'
+import { useChime } from './useChime'
 
 function formatMMSS(ms: number): string {
   const total = Math.ceil(ms / 1000)
@@ -16,6 +17,11 @@ export function ReminderApp(): React.JSX.Element {
   const [remainingMs, setRemainingMs] = useState(180_000)
   const [exercise, setExercise] = useState<Exercise | null>(null)
   const [finished, setFinished] = useState(false)
+  const [canSnooze, setCanSnooze] = useState(true)
+  const [snoozeMinutes, setSnoozeMinutes] = useState(5)
+  const playChime = useChime()
+  // Held in refs so the sound settings do not re-run the subscribe effects.
+  const sound = useRef({ enabled: true, volume: 0.7, doneUrl: '' })
   // Held in a ref so the timer effect does not re-run on every tick.
   const wasBreaking = useRef(false)
 
@@ -24,10 +30,15 @@ export function ReminderApp(): React.JSX.Element {
       setDurationSec(p.breakDurationSec)
       setRemainingMs(p.breakDurationSec * 1000)
       setExercise(findExercise(p.exerciseId) ?? null)
+      setCanSnooze(p.canSnooze)
+      setSnoozeMinutes(p.snoozeMinutes)
       setFinished(false)
       wasBreaking.current = false
+
+      sound.current = { enabled: p.soundEnabled, volume: p.volume, doneUrl: p.doneUrl }
+      if (p.soundEnabled) playChime(p.chimeUrl, p.volume)
     })
-  }, [])
+  }, [playChime])
 
   useEffect(() => {
     return window.relex.onTimerState((s) => {
@@ -42,6 +53,13 @@ export function ReminderApp(): React.JSX.Element {
       }
     })
   }, [])
+
+  useEffect(() => {
+    return window.relex.onBreakComplete(() => {
+      const { enabled, volume, doneUrl } = sound.current
+      if (enabled) playChime(doneUrl, volume)
+    })
+  }, [playChime])
 
   if (finished) {
     return (
@@ -74,12 +92,16 @@ export function ReminderApp(): React.JSX.Element {
         >
           Done
         </button>
-        <button
-          className="btn btn-secondary"
-          onClick={() => window.relex.breakAction({ type: 'snooze', minutes: 5 })}
-        >
-          Snooze 5 min
-        </button>
+        {canSnooze && (
+          <button
+            className="btn btn-secondary"
+            onClick={() =>
+              window.relex.breakAction({ type: 'snooze', minutes: snoozeMinutes })
+            }
+          >
+            Snooze {snoozeMinutes} min
+          </button>
+        )}
         <button
           className="btn btn-quiet"
           onClick={() => window.relex.breakAction({ type: 'dismiss' })}
