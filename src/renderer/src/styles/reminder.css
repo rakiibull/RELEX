@@ -68,9 +68,28 @@ body {
 }
 
 .subtitle {
-  margin: 0 0 36px;
+  margin: 0 0 28px;
   font-size: 17px;
   color: #a8b0bd;
+}
+
+.ring {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  margin-bottom: 32px;
+}
+
+.ring svg {
+  display: block;
+}
+
+.ring-label {
+  position: absolute;
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .actions {

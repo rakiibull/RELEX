@@ -1,7 +1,7 @@
 import { BrowserWindow, screen, shell } from 'electron'
 import { join } from 'path'
 import { CH } from '../../shared/channels'
-import type { ReminderShowPayload } from '../../shared/types'
+import type { ReminderShowPayload, TimerState } from '../../shared/types'
 
 let win: BrowserWindow | null = null
 
@@ -85,4 +85,11 @@ export function showReminder(payload: ReminderShowPayload): void {
 
 export function hideReminder(): void {
   if (win && !win.isDestroyed()) win.hide()
+}
+
+/** Only worth sending while the popup is on screen. */
+export function sendTimerState(state: TimerState): void {
+  if (win && !win.isDestroyed() && win.isVisible()) {
+    win.webContents.send(CH.TIMER_STATE, state)
+  }
 }
