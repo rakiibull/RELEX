@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { findExercise } from '@shared/exercises'
+import type { Exercise } from '@shared/types'
 import { CountdownRing } from './CountdownRing'
+import { ExerciseCard } from './ExerciseCard'
 
 function formatMMSS(ms: number): string {
   const total = Math.ceil(ms / 1000)
@@ -11,6 +14,7 @@ function formatMMSS(ms: number): string {
 export function ReminderApp(): React.JSX.Element {
   const [durationSec, setDurationSec] = useState(180)
   const [remainingMs, setRemainingMs] = useState(180_000)
+  const [exercise, setExercise] = useState<Exercise | null>(null)
   const [finished, setFinished] = useState(false)
   // Held in a ref so the timer effect does not re-run on every tick.
   const wasBreaking = useRef(false)
@@ -19,6 +23,7 @@ export function ReminderApp(): React.JSX.Element {
     return window.relex.onReminderShow((p) => {
       setDurationSec(p.breakDurationSec)
       setRemainingMs(p.breakDurationSec * 1000)
+      setExercise(findExercise(p.exerciseId) ?? null)
       setFinished(false)
       wasBreaking.current = false
     })
@@ -38,12 +43,9 @@ export function ReminderApp(): React.JSX.Element {
     })
   }, [])
 
-  const minutes = Math.round(durationSec / 60)
-  const progress = durationSec > 0 ? remainingMs / (durationSec * 1000) : 0
-
   if (finished) {
     return (
-      <div className="card">
+      <div className="card card-centred">
         <p className="eyebrow">RELEX</p>
         <h1 className="title">Nice work</h1>
         <p className="subtitle">Back to it — the next break is already counting down.</p>
@@ -51,15 +53,19 @@ export function ReminderApp(): React.JSX.Element {
     )
   }
 
+  const progress = durationSec > 0 ? remainingMs / (durationSec * 1000) : 0
+
   return (
     <div className="card">
-      <p className="eyebrow">RELEX</p>
-      <h1 className="title">Stand up and move</h1>
-      <p className="subtitle">
-        Take {minutes} {minutes === 1 ? 'minute' : 'minutes'} away from the screen.
-      </p>
+      <header className="card-head">
+        <div>
+          <p className="eyebrow">RELEX</p>
+          <h1 className="title">Stand up and move</h1>
+        </div>
+        <CountdownRing progress={progress} label={formatMMSS(remainingMs)} />
+      </header>
 
-      <CountdownRing progress={progress} label={formatMMSS(remainingMs)} />
+      {exercise && <ExerciseCard exercise={exercise} />}
 
       <div className="actions">
         <button

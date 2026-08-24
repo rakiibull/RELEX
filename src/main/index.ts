@@ -1,6 +1,7 @@
 import { app, ipcMain } from 'electron'
 import { CH } from '../shared/channels'
 import type { BreakAction, TimerState } from '../shared/types'
+import { EXERCISES, pickNextExercise } from '../shared/exercises'
 import * as scheduler from './scheduler'
 import { registerPowerEvents } from './powerEvents'
 import { createTray, updateTray, destroyTray } from './tray'
@@ -29,6 +30,18 @@ const CONFIG = {
 
 /** How long the "Nice work" card stays up after a completed break. */
 const NICE_WORK_MS = 3000
+
+/** Ids of the last few exercises shown, oldest first, so the same stretch
+ *  does not come round twice in a row. Phase 5 persists this. */
+const recentExerciseIds: string[] = []
+const RECENT_LIMIT = 6
+
+function nextExerciseId(): string {
+  const exercise = pickNextExercise(EXERCISES, recentExerciseIds)
+  recentExerciseIds.push(exercise.id)
+  if (recentExerciseIds.length > RECENT_LIMIT) recentExerciseIds.shift()
+  return exercise.id
+}
 
 let hideTimer: NodeJS.Timeout | null = null
 
@@ -89,7 +102,10 @@ if (!app.requestSingleInstanceLock()) {
     scheduler.start(CONFIG, {
       onBreakStart: () => {
         clearHideTimer()
-        showReminder({ breakDurationSec: CONFIG.breakDurationSec })
+        showReminder({
+          breakDurationSec: CONFIG.breakDurationSec,
+          exerciseId: nextExerciseId(),
+        })
       },
       onBreakEnd: (completed) => {
         // A break that ran its course leaves the "Nice work" card up briefly;

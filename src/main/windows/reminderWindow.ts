@@ -7,8 +7,8 @@ let win: BrowserWindow | null = null
 
 export function createReminderWindow(): BrowserWindow {
   win = new BrowserWindow({
-    width: 720,
-    height: 560,
+    width: 760,
+    height: 620,
     show: false,
     frame: false,
     transparent: true,

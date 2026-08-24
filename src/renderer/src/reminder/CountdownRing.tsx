@@ -4,8 +4,8 @@ interface Props {
   label: string
 }
 
-const SIZE = 132
-const STROKE = 8
+const SIZE = 96
+const STROKE = 7
 const RADIUS = (SIZE - STROKE) / 2
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
