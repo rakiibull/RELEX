@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RELEX — Stand up and move</title>
+<meta name="description" content="A macOS menu-bar reminder to stand up and stretch. RELEX nudges you every 30 minutes with a specific stretch to do." />
+<meta property="og:title" content="RELEX — Stand up and move" />
+<meta property="og:description" content="A macOS menu-bar reminder to stand up and stretch, in English and Bengali." />
+<meta property="og:image" content="popup.png" />
+<link rel="icon" href="icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f1116;
+    --surface: #16181d;
+    --surface-2: #1c1f26;
+    --border: #262b34;
+    --text: #f4f5f7;
+    --muted: #a8b0bd;
+    --dim: #7f8794;
+    --accent: #4c8dff;
+    --max: 980px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+
+  /* Bengali needs its own face; Inter has no Bengali glyphs. */
+  .bn {
+    font-family: 'Noto Sans Bengali', Inter, sans-serif;
+    color: var(--muted);
+  }
+
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  /* --- hero --- */
+
+  header {
+    text-align: center;
+    padding: 72px 0 8px;
+  }
+
+  .app-icon {
+    width: 88px; height: 88px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+  }
+
+  h1 {
+    margin: 0 0 6px;
+    font-size: clamp(38px, 7vw, 58px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  .tagline {
+    margin: 0 0 4px;
+    font-size: clamp(17px, 2.6vw, 21px);
+    color: var(--muted);
+  }
+
+  .tagline-bn {
+    margin: 0 0 32px;
+    font-size: clamp(15px, 2.4vw, 18px);
+  }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 15px 32px;
+    border-radius: 14px;
+    transition: background-color 140ms ease, transform 140ms ease;
+  }
+
+  .cta:hover { background: #659dff; transform: translateY(-1px); }
+
+  .cta-meta {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  /* --- screenshot --- */
+
+  .shot {
+    margin: 56px 0 72px;
+  }
+
+  .shot img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 18px;
+  }
+
+  .shot figcaption {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  /* --- features --- */
+
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin: 0 0 20px;
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 72px;
+  }
+
+  .feature {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+  }
+
+  .feature h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .feature p { margin: 0; font-size: 14px; color: var(--muted); }
+  .feature p.bn { margin-top: 4px; font-size: 13.5px; }
+
+  /* --- install --- */
+
+  .install {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 30px 32px;
+    margin-bottom: 40px;
+  }
+
+  ol { margin: 0; padding-left: 22px; display: grid; gap: 14px; }
+  li { font-size: 15px; }
+  li .bn { display: block; font-size: 13.5px; margin-top: 2px; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px 7px;
+  }
+
+  .note {
+    margin: 22px 0 0;
+    padding: 16px 18px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  .note strong { color: var(--text); }
+  .note .bn { display: block; margin-top: 4px; font-size: 13px; }
+
+  /* --- footer --- */
+
+  footer {
+    text-align: center;
+    padding: 32px 0 56px;
+    font-size: 13px;
+    color: var(--dim);
+    border-top: 1px solid var(--border);
+  }
+
+  footer a { color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta { transition: none; }
+    .cta:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <img class="app-icon" src="icon.png" alt="" />
+    <h1>RELEX</h1>
+    <p class="tagline">A menu-bar reminder to stand up and move.</p>
+    <p class="tagline bn">ঘণ্টার পর ঘণ্টা বসে থাকা বন্ধ করুন — প্রতি ৩০ মিনিটে উঠে দাঁড়ানোর মনে করিয়ে দেবে।</p>
+
+    <a class="cta" href="https://github.com/rakiibull/RELEX/releases/latest/download/RELEX-0.1.0.dmg">
+      Download for macOS
+    </a>
+    <p class="cta-meta">
+      118 MB &middot; macOS 12 Monterey or later &middot; Intel
+      <br />
+      <a href="https://github.com/rakiibull/RELEX" style="color: var(--dim)">Source on GitHub</a>
+    </p>
+  </header>
+
+  <figure class="shot">
+    <img src="popup.png" alt="The RELEX popup showing a Shoulder Roll stretch with instructions in English and Bengali, and a countdown ring." />
+    <figcaption>The reminder appears over your work — without stealing keyboard focus.</figcaption>
+  </figure>
+
+  <h2>What it does</h2>
+  <div class="features">
+
+    <div class="feature">
+      <h3>Lives in the menu bar</h3>
+      <p>A live countdown to your next break. Pause, skip, or take one early.</p>
+      <p class="bn">মেনু বারে countdown দেখায়। থামানো, বাদ দেওয়া বা এখনই বিরতি নেওয়া যায়।</p>
+    </div>
+
+    <div class="feature">
+      <h3>13 stretches</h3>
+      <p>Neck, shoulders, back, wrists, eyes, legs — each with an animated figure and steps.</p>
+      <p class="bn">ঘাড়, কাঁধ, পিঠ, কব্জি, চোখ, পা — প্রতিটির অ্যানিমেশন ও ধাপ সহ।</p>
+    </div>
+
+    <div class="feature">
+      <h3>English and Bengali</h3>
+      <p>Every instruction appears in both languages.</p>
+      <p class="bn">প্রতিটি নির্দেশনা দুই ভাষাতেই দেখা যায়।</p>
+    </div>
+
+    <div class="feature">
+      <h3>Does not interrupt your typing</h3>
+      <p>The popup appears over other apps but never takes keyboard focus, so a keystroke never lands in the wrong place.</p>
+      <p class="bn">পপআপ উপরে আসে, কিন্তু কীবোর্ড কেড়ে নেয় না — টাইপ করা অক্ষর হারায় না।</p>
+    </div>
+
+    <div class="feature">
+      <h3>Work hours</h3>
+      <p>Only remind you between the hours you choose. Overnight shifts work too.</p>
+      <p class="bn">শুধু আপনার বেছে নেওয়া সময়েই মনে করাবে। রাতের শিফটও চলবে।</p>
+    </div>
+
+    <div class="feature">
+      <h3>Survives sleep</h3>
+      <p>Closing the lid pauses the timer and gives back the time that was left, rather than restarting it.</p>
+      <p class="bn">ল্যাপটপ বন্ধ করলে টাইমার থামে, খুললে বাকি সময় থেকেই চলে।</p>
+    </div>
+
+  </div>
+
+  <h2>Installing</h2>
+  <div class="install">
+    <ol>
+      <li>
+        Download the <code>.dmg</code> and open it.
+        <span class="bn">ফাইলটি ডাউনলোড করে খুলুন।</span>
+      </li>
+      <li>
+        Drag <strong>RELEX</strong> into your <strong>Applications</strong> folder.
+        <span class="bn">RELEX-কে Applications ফোল্ডারে টেনে নিন।</span>
+      </li>
+      <li>
+        <strong>Right-click</strong> RELEX and choose <strong>Open</strong>, then <strong>Open</strong> again.
+        <span class="bn">RELEX-এ ডান-ক্লিক করে Open চাপুন, তারপর আবার Open।</span>
+      </li>
+      <li>
+        Look for the clock icon in your menu bar. Open <strong>Settings</strong> to turn on
+        <em>Launch at login</em>.
+        <span class="bn">মেনু বারে ঘড়ির আইকন দেখুন। Settings থেকে "Launch at login" চালু করুন।</span>
+      </li>
+    </ol>
+
+    <p class="note">
+      <strong>Why the right-click?</strong>
+      RELEX is signed for personal use rather than with a paid Apple Developer
+      certificate, so macOS asks for confirmation the first time. Only the first
+      launch needs it. If macOS says the app is damaged, run
+      <code>xattr -dr com.apple.quarantine /Applications/RELEX.app</code>.
+      <span class="bn">
+        ডান-ক্লিক কেন? অ্যাপটি Apple-এর সার্টিফিকেট ছাড়া তৈরি, তাই প্রথমবার macOS
+        অনুমতি চায়। শুধু প্রথমবারই লাগবে।
+      </span>
+    </p>
+  </div>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    Built with Electron &middot;
+    <a href="https://github.com/rakiibull/RELEX">github.com/rakiibull/RELEX</a>
+  </div>
+</footer>
+
+</body>
+</html>
