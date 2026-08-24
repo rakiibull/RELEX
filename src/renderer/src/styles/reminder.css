@@ -1,0 +1,123 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  /* The window itself is transparent; the card below paints the surface. */
+  background: transparent;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  /* Nothing here should be selectable or draggable as text. */
+  user-select: none;
+  cursor: default;
+}
+
+.card {
+  width: 640px;
+  padding: 48px 56px;
+  border-radius: 24px;
+  background: #16181d;
+  color: #f4f5f7;
+  border: 1px solid #2a2e37;
+  text-align: center;
+  /* Drawn on the card, not the window: window shadows ghost on macOS. */
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  animation: card-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Let the user drag the popup out of the way by its background. */
+  -webkit-app-region: drag;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}
+
+.eyebrow {
+  margin: 0 0 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b93a1;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0 0 36px;
+  font-size: 17px;
+  color: #a8b0bd;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  /* Buttons must stay clickable inside the draggable card. */
+  -webkit-app-region: no-drag;
+}
+
+.btn {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.btn-primary {
+  background: #4c8dff;
+  color: #fff;
+}
+.btn-primary:hover {
+  background: #659dff;
+}
+
+.btn-secondary {
+  background: #232730;
+  color: #e6e9ee;
+  border-color: #333945;
+}
+.btn-secondary:hover {
+  background: #2b303b;
+}
+
+.btn-quiet {
+  background: transparent;
+  color: #8b93a1;
+}
+.btn-quiet:hover {
+  color: #c3cad4;
+}
+
+.btn:focus-visible {
+  outline: 2px solid #4c8dff;
+  outline-offset: 2px;
+}
