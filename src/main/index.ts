@@ -4,6 +4,7 @@ import { CH } from '../shared/channels'
 import type { BreakAction, Settings, TimerState } from '../shared/types'
 import { EXERCISES, pickNextExercise } from '../shared/exercises'
 import { isWithinWorkHours } from '../shared/workHours'
+import { initLog, log } from './log'
 import * as scheduler from './scheduler'
 import { registerPowerEvents } from './powerEvents'
 import { createTray, updateTray, destroyTray } from './tray'
@@ -108,7 +109,15 @@ function startBreak(): void {
 if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
+  // Before anything else, so a crash during startup still gets written down.
+  initLog()
+  process.on('uncaughtException', (err) => {
+    log(`uncaught: ${err.stack ?? String(err)}`)
+  })
+  log(`launched, packaged=${app.isPackaged}`)
+
   app.whenReady().then(() => {
+    log(`ready, userData=${app.getPath('userData')}`)
     // Menu-bar app: no Dock icon.
     app.dock?.hide()
 
@@ -166,6 +175,8 @@ if (!app.requestSingleInstanceLock()) {
     ipcMain.handle(CH.WINDOW_CLOSE, () => hideSettings())
 
     registerPowerEvents()
+
+    log(`ready, interval=${schedulerConfig().intervalMinutes}min`)
 
     scheduler.start(schedulerConfig(), {
       onBreakStart: startBreak,

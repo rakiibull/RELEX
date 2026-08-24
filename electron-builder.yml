@@ -1,0 +1,49 @@
+appId: com.rakiibull.relex
+productName: RELEX
+copyright: RELEX
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - package.json
+
+# Outside the asar, so Audio() and nativeImage can load them as real files.
+extraResources:
+  - from: resources/sounds
+    to: sounds
+  - from: build/trayTemplate.png
+    to: trayTemplate.png
+  - from: build/trayTemplate@2x.png
+    to: trayTemplate@2x.png
+
+mac:
+  category: public.app-category.healthcare-fitness
+  icon: build/icon.icns
+  target:
+    - target: dir
+      arch: [x64]
+    - target: dmg
+      arch: [x64]
+  extendInfo:
+    # Menu-bar only: no Dock icon, no app switcher entry.
+    LSUIElement: true
+  # Personal build: no Apple Developer account. identity: null would skip
+  # signing entirely, but macOS needs at least an ad-hoc signature to run an
+  # Electron app, so afterSign applies one.
+  identity: null
+
+afterSign: scripts/adhoc-sign.js
+
+dmg:
+  title: RELEX
+  contents:
+    - x: 140
+      y: 180
+      type: file
+    - x: 400
+      y: 180
+      type: link
+      path: /Applications
