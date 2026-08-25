@@ -12,7 +12,8 @@
     "pack:mac": "npm run build && unset ELECTRON_RUN_AS_NODE && electron-builder --mac --x64 --dir",
     "dist:mac": "npm run build && unset ELECTRON_RUN_AS_NODE && electron-builder --mac --x64",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "release": "node scripts/release.js"
+    "release": "node scripts/release.js",
+    "schedule": "node scripts/schedule.js"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

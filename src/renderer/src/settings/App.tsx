@@ -33,11 +33,16 @@ export function App(): React.JSX.Element {
   if (!settings) return <div className="loading">Loading…</div>
 
   /** Optimistic: show the change at once, then let main echo back the
-   *  clamped value it actually stored. */
-  function update(patch: Partial<Settings>): void {
+   *  clamped value it actually stored.
+   *
+   *  patch may be a function so it can build on the latest state rather than
+   *  whatever was captured at render time — without that, two quick changes to
+   *  the same nested object (tick the box, then edit a time) make the second
+   *  overwrite the first. */
+  function update(patch: Partial<Settings> | ((prev: Settings) => Partial<Settings>)): void {
     setSettings((prev) => {
       if (!prev) return prev
-      const next = { ...prev, ...patch }
+      const next = { ...prev, ...(typeof patch === 'function' ? patch(prev) : patch) }
       void window.relex.setSettings(next).then(setSettings)
       return next
     })
@@ -139,7 +144,9 @@ export function App(): React.JSX.Element {
             type="checkbox"
             checked={settings.workHours.enabled}
             onChange={(e) =>
-              update({ workHours: { ...settings.workHours, enabled: e.target.checked } })
+              update((prev) => ({
+                workHours: { ...prev.workHours, enabled: e.target.checked },
+              }))
             }
           />
         </Row>
@@ -150,7 +157,9 @@ export function App(): React.JSX.Element {
             value={settings.workHours.start}
             disabled={!settings.workHours.enabled}
             onChange={(e) =>
-              update({ workHours: { ...settings.workHours, start: e.target.value } })
+              update((prev) => ({
+                workHours: { ...prev.workHours, start: e.target.value },
+              }))
             }
           />
           <span className="unit unit-inline">to</span>
@@ -159,7 +168,9 @@ export function App(): React.JSX.Element {
             value={settings.workHours.end}
             disabled={!settings.workHours.enabled}
             onChange={(e) =>
-              update({ workHours: { ...settings.workHours, end: e.target.value } })
+              update((prev) => ({
+                workHours: { ...prev.workHours, end: e.target.value },
+              }))
             }
           />
         </Row>

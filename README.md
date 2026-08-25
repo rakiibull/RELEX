@@ -50,6 +50,25 @@ xattr -dr com.apple.quarantine /Applications/RELEX.app
 The build is ad-hoc signed rather than signed with an Apple Developer
 certificate. That is enough for personal use and needs no Apple account.
 
+## Opening and closing on a schedule
+
+Work hours keep RELEX quiet outside the times you set, but they only apply
+while it is running — "Launch at login" covers boot, not the clock. To have
+macOS open and quit it at your work hours:
+
+```bash
+npm run schedule              # reads your work hours, installs the agents
+npm run schedule -- status    # show what is installed
+npm run schedule -- uninstall # remove them
+```
+
+This writes two `launchd` agents to `~/Library/LaunchAgents`: one opens the app
+at your start time, one quits it at your end time. launchd can start a job on a
+schedule but has no notion of stopping one, hence the pair.
+
+Re-run `npm run schedule` after changing your work hours — the agents hold a
+copy of the times, not a live reference.
+
 ## Notes
 
 - **Electron is pinned to 43.4.1 without a caret.** Electron 44 requires
