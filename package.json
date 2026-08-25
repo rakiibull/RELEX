@@ -1,6 +1,6 @@
 {
   "name": "relex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stand-up and stretch reminder for developers",
   "main": "./out/main/index.js",
   "author": "rakiibull",
