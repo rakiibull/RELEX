@@ -17,9 +17,14 @@ const api = {
 
   getSettings: (): Promise<Settings> => ipcRenderer.invoke(CH.SETTINGS_GET),
   setSettings: (s: Settings): Promise<Settings> => ipcRenderer.invoke(CH.SETTINGS_SET, s),
-  /** Returns the file URL and volume so the settings window can play it. */
-  testSound: (): Promise<{ url: string; volume: number }> =>
-    ipcRenderer.invoke(CH.SETTINGS_TEST_SOUND),
+  /** Returns the file URL and volume so the settings window can play it,
+   *  plus what the Mac's own output will do with it. */
+  testSound: (): Promise<{
+    url: string
+    volume: number
+    systemMuted: boolean
+    systemVolume: number | null
+  }> => ipcRenderer.invoke(CH.SETTINGS_TEST_SOUND),
   closeWindow: (): Promise<void> => ipcRenderer.invoke(CH.WINDOW_CLOSE),
 
   onReminderShow: (cb: (p: ReminderShowPayload) => void) =>

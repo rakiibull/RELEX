@@ -23,6 +23,9 @@ function Row({
 
 export function App(): React.JSX.Element {
   const [settings, setSettings] = useState<Settings | null>(null)
+  // What the Mac's own output did with the last test, so a silent chime is
+  // explained rather than looking like a broken app.
+  const [soundWarning, setSoundWarning] = useState<string | null>(null)
 
   useEffect(() => {
     void window.relex.getSettings().then(setSettings)
@@ -49,10 +52,24 @@ export function App(): React.JSX.Element {
   }
 
   async function testSound(): Promise<void> {
-    const { url, volume } = await window.relex.testSound()
+    const { url, volume, systemMuted, systemVolume } = await window.relex.testSound()
+
+    if (systemMuted) {
+      setSoundWarning('Your Mac is muted, so you will not hear this. Unmute it and try again.')
+    } else if (systemVolume !== null && systemVolume < 10) {
+      setSoundWarning(`Your Mac's volume is ${systemVolume}%. Turn it up to hear the chime.`)
+    } else if (volume < 0.05) {
+      setSoundWarning('The volume slider is almost at zero.')
+    } else {
+      setSoundWarning(null)
+    }
+
     const audio = new Audio(url)
     audio.volume = volume
-    await audio.play().catch((e: unknown) => console.error('[relex] test sound:', e))
+    await audio.play().catch((e: unknown) => {
+      console.error('[relex] test sound:', e)
+      setSoundWarning('The chime could not be played.')
+    })
   }
 
   return (
@@ -134,6 +151,8 @@ export function App(): React.JSX.Element {
             Test
           </button>
         </Row>
+
+        {soundWarning && <p className="warning">{soundWarning}</p>}
       </section>
 
       <section className="group">

@@ -179,3 +179,15 @@ input:disabled {
   display: flex;
   justify-content: flex-end;
 }
+
+/* Explains a chime the user will not hear — a muted Mac, a volume near zero. */
+.warning {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #2a2318;
+  border: 1px solid #4a3a1c;
+  color: #e8c88a;
+  font-size: 13px;
+  line-height: 1.4;
+}

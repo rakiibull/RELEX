@@ -9,6 +9,7 @@ import * as scheduler from './scheduler'
 import { registerPowerEvents } from './powerEvents'
 import { createTray, updateTray, destroyTray } from './tray'
 import { soundPath } from './paths'
+import { getOutputState } from './systemAudio'
 import { getLaunchAtLogin, setLaunchAtLogin } from './loginItem'
 import {
   getRecentExerciseIds,
@@ -167,10 +168,15 @@ if (!app.requestSingleInstanceLock()) {
       return settings
     })
 
-    ipcMain.handle(CH.SETTINGS_TEST_SOUND, () => ({
-      url: pathToFileURL(soundPath('chime.wav')).toString(),
-      volume: settings.volume,
-    }))
+    ipcMain.handle(CH.SETTINGS_TEST_SOUND, async () => {
+      const output = await getOutputState()
+      return {
+        url: pathToFileURL(soundPath('chime.wav')).toString(),
+        volume: settings.volume,
+        systemMuted: output.muted,
+        systemVolume: output.volume,
+      }
+    })
 
     ipcMain.handle(CH.WINDOW_CLOSE, () => hideSettings())
 
