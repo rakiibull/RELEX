@@ -45,8 +45,8 @@ const pkgPath = path.join(ROOT, 'package.json')
 const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
 const version = nextVersion(pkg.version, process.argv[2])
 
-if (capture('git tag').split('\n').includes(`v${version}`)) {
-  fail(`Tag v${version} already exists.`)
+if (capture('git tag').split('\n').includes(version)) {
+  fail(`Tag ${version} already exists.`)
 }
 
 console.log(`\n▸ Releasing ${pkg.version} → ${version}\n`)
@@ -81,8 +81,8 @@ writeFileSync(sitePath, site)
 
 console.log('\n▸ Committing and tagging…\n')
 run('git', ['add', 'package.json', 'package-lock.json', 'site/index.html'])
-run('git', ['commit', '-m', `Release v${version}`])
-run('git', ['tag', `v${version}`])
+run('git', ['commit', '-m', `Release ${version}`])
+run('git', ['tag', version])
 run('git', ['push'])
 run('git', ['push', '--tags'])
 
@@ -90,10 +90,10 @@ run('git', ['push', '--tags'])
 
 console.log('\n▸ Uploading to GitHub Releases…\n')
 run('gh', [
-  'release', 'create', `v${version}`, dmg,
+  'release', 'create', version, dmg,
   '--title', `RELEX ${version}`,
   '--notes', `macOS 12 Monterey or later, Intel.\n\nDownload RELEX-${version}.dmg below.`,
 ])
 
-console.log(`\n✓ Released v${version} (${sizeMb} MB)`)
+console.log(`\n✓ Released ${version} (${sizeMb} MB)`)
 console.log('  The website redeploys itself from the push.\n')
