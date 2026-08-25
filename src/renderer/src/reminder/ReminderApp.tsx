@@ -20,10 +20,8 @@ export function ReminderApp(): React.JSX.Element {
   const [canSnooze, setCanSnooze] = useState(true)
   const [snoozeMinutes, setSnoozeMinutes] = useState(5)
   const playChime = useChime()
-  // Held in refs so the sound settings do not re-run the subscribe effects.
+  // Held in a ref so the sound settings do not re-run the subscribe effects.
   const sound = useRef({ enabled: true, volume: 0.7, doneUrl: '' })
-  // Held in a ref so the timer effect does not re-run on every tick.
-  const wasBreaking = useRef(false)
 
   useEffect(() => {
     return window.relex.onReminderShow((p) => {
@@ -33,7 +31,6 @@ export function ReminderApp(): React.JSX.Element {
       setCanSnooze(p.canSnooze)
       setSnoozeMinutes(p.snoozeMinutes)
       setFinished(false)
-      wasBreaking.current = false
 
       sound.current = { enabled: p.soundEnabled, volume: p.volume, doneUrl: p.doneUrl }
       if (p.soundEnabled) playChime(p.chimeUrl, p.volume)
@@ -42,20 +39,17 @@ export function ReminderApp(): React.JSX.Element {
 
   useEffect(() => {
     return window.relex.onTimerState((s) => {
-      if (s.phase === 'breaking') {
-        wasBreaking.current = true
-        setRemainingMs(s.remainingMs)
-      } else if (wasBreaking.current) {
-        // The break ran to completion rather than being dismissed.
-        wasBreaking.current = false
-        setRemainingMs(0)
-        setFinished(true)
-      }
+      if (s.phase === 'breaking') setRemainingMs(s.remainingMs)
     })
   }, [])
 
+  // Only main can tell a break that ran its course from one the user ended,
+  // so the "Nice work" card is driven by its signal rather than inferred from
+  // a phase change — inferring it showed the card after Dismiss too.
   useEffect(() => {
     return window.relex.onBreakComplete(() => {
+      setRemainingMs(0)
+      setFinished(true)
       const { enabled, volume, doneUrl } = sound.current
       if (enabled) playChime(doneUrl, volume)
     })
